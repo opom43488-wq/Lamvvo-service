@@ -23,14 +23,16 @@ jobs:
           echo y | ./latest/bin/sdkmanager "platforms;android-30" "build-tools;30.0.3" > /dev/null
       - name: Compile APK
         run: |
-          # Télécharger smali
-          wget -q https://github.com/LSPosed/smali/releases/download/v2.5.2/smali-2.5.2.jar
+          # Télécharger smali depuis un miroir
+          wget -q https://github.com/google/smali/raw/master/smali/target/smali-2.5.2.jar || wget -q https://repo1.maven.org/maven2/org/smali/smali/2.5.2/smali-2.5.2.jar
           # Compiler les smali en dex
           java -jar smali-2.5.2.jar assemble smali -o classes.dex
           # Créer l'APK
           aapt package -f -M AndroidManifest.xml -S res -I $HOME/android-sdk/platforms/android-30/android.jar -F app.apk
           aapt add app.apk classes.dex
-          # Signer avec une clé de debug
+          # Générer une clé de debug
+          keytool -genkey -v -keystore debug.keystore -alias debug -keyalg RSA -keysize 2048 -validity 10000 -dname "CN=Debug, OU=Debug, O=Debug, L=Debug, ST=Debug, C=DE" -storepass android -keypass android
+          # Signer
           apksigner sign --ks debug.keystore --ks-pass pass:android --key-pass pass:android app.apk
           mv app.apk Lamvvo_Service.apk
       - name: Upload APK
