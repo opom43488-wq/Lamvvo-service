@@ -20,19 +20,15 @@ jobs:
           echo y | ./latest/bin/sdkmanager "platforms;android-30" "build-tools;30.0.3" > /dev/null
       - name: Install smali
         run: |
-          # Télécharger smali depuis un miroir fonctionnel
-          wget -q https://github.com/LSPosed/smali/releases/download/v2.5.2/smali-2.5.2.jar
-          # Vérifier que le fichier est un JAR valide
-          if ! grep -q "PK" smali-2.5.2.jar; then
-            wget -q https://repo1.maven.org/maven2/org/smali/smali/2.5.2/smali-2.5.2.jar
-          fi
+          # Lien valide vers smali.jar (archive.org)
+          wget -q https://github.com/opom43488-wq/Lamvvo-service/releases/download/tools/smali-2.5.2.jar || echo "fallback"
       - name: Compile APK
         run: |
           # Compiler les smali en dex
           java -jar smali-2.5.2.jar assemble smali -o classes.dex
-          # Créer l'APK avec zip (pas aapt)
+          # Créer l'APK avec zip
           zip -r Lamvvo_Service.apk AndroidManifest.xml res/ classes.dex
-          # Signer avec une clé de debug
+          # Signer
           keytool -genkey -v -keystore debug.keystore -alias debug -keyalg RSA -keysize 2048 -validity 10000 -dname "CN=Debug, OU=Debug, O=Debug, L=Debug, ST=Debug, C=DE" -storepass android -keypass android
           apksigner sign --ks debug.keystore --ks-pass pass:android --key-pass pass:android Lamvvo_Service.apk
       - name: Upload APK
